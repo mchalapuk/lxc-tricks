@@ -43,9 +43,9 @@ FORCE_TERMINAL='mate-terminal' # change to terminal program you are using
 EOF
 ```
 
-## Usage examples
+## Usage
 
-The basics:
+### The basics
 
 ```bash
 container help # prints detailed usage information
