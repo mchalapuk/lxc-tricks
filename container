@@ -1,5 +1,10 @@
 #!/bin/bash
 # vim:ts=2 sw=2 expandtab
+#
+# script name: lxc-tricks
+# url: https://github.com/muroc/lxc-tricks
+# author: Maciej Chałapuk
+# license: MIT
 
 PROG="$0"
 ARGS="$@"
