@@ -44,12 +44,15 @@ EOF
 
 ## Usage examples
 
+The basics:
+
 ```bash
 container help # prints detailed usage information
 container start # starts all active containers
-container stop # stops all active containers
-container browser sh # starts shell in container browser as users browser
+container browser start # starts container of name browser
+container browser sh # starts shell in container browser as user browser
 container browser # same as above sh is the default action
+container browser sudo # starts root shell in container browser
 ```
 
 ### Copying files between containers
