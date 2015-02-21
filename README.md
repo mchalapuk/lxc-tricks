@@ -1,4 +1,4 @@
-# LXC container manager
+# LXC Tricks
 
 Small bash script that manages LXC containers, performs operations on one
 of the containers or all configured containers at once.
@@ -7,10 +7,10 @@ of the containers or all configured containers at once.
 
 All active containers should have:
 
- 1. **User with name same as container name** - *sh* command assumes that all
+ 1. **User with name same as container name** - `sh` command assumes that all
     containers have user with the same name as container name. Sh commands
     are performed as this user.
- 2. **Running ssh server** - *cp* command uses *scp* program to perform
+ 2. **Running ssh server** - `cp` command uses `scp` program to perform
     transfers between containers.
 
 ## Installation
@@ -87,4 +87,16 @@ browser start
 browser firefox https://github.com/muroc/lxc-tricks
 browser stop
 ```
+
+# Contribution
+
+Push requests are very welcome.
+
+## TODO
+
+ * container activation based on existance of configuration file
+   `~/.c/$CONTAINER_NAME`
+ * default *USERNAME* configuration for `sh` command
+ * per-container username configuration for `sh` command
+ * per-container *FORCE_TERMINAL* configuration
 
