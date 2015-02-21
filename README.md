@@ -101,4 +101,5 @@ Push requests are very welcome.
    to remove username prerequisite
  * per-container *FORCE_TERMINAL* configuration
  * `cp` command based on `lxc-usernsexec` to remove ssh prerequisite
+ * *Background* section before *Prerequisites*
 
