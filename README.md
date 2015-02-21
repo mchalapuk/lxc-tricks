@@ -36,6 +36,7 @@ echo "PATH=$BIN_DIR:$PATH" >> $RC_FILE
 ## Configuration
 
 ```bash
+mkdir -p ~/.c
 cat > ~/.c/defaults << EOF
 ACTIVE_CONTAINERS='browser gamedev' # replace with names of your containers
 FORCE_TERMINAL='mate-terminal' # change to terminal program you are using
