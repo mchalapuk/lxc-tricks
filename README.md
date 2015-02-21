@@ -103,4 +103,5 @@ Push requests are very welcome.
  * per-container *FORCE_TERMINAL* configuration
  * `cp` command based on `lxc-usernsexec` to remove ssh prerequisite
  * *Background* section before *Prerequisites*
+ * gif-animated usage at the top of README.md file
 
