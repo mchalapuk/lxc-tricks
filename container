@@ -1,0 +1,240 @@
+#!/bin/bash
+# vim:ts=2 sw=2 expandtab
+
+PROG="$0"
+ARGS="$@"
+NAME="`basename $0`"
+
+DEFAULTS_FILE=~/.c/defaults
+
+print_available_actions() {
+  echo "possible actions:"
+  echo "  start               - starts the container"
+  echo "  stop                - stops the container"
+  echo "  status              - prints container status"
+  echo "  sh [command-line]   - executes a shell (default action)"
+  echo "  sudo [command-line] - executes a root shell"
+  echo "  help                - prints this help"
+  echo "  usage               - help alias"
+}
+print_usage() {
+  echo "usage:"
+  echo "  $PROG [container] [action] [arg]..."
+  echo "where:"
+  echo "  container - name of the container"
+  echo "  action - action that will be taken on the container"
+  echo "  arg... - arguments of chosen action"
+  echo
+  print_available_actions
+  echo "  cp <transfer-spec>  - copies files between containers"
+  echo
+  echo "transfer-spec format:"
+  echo "  <source-name>:<source-path> <target-name>:[target-path]"
+  echo "where:"
+  echo "  source-name - name of the container to transfer from"
+  echo "  source-path - file path on the source container"
+  echo "  target-name - name of the container to transfer to"
+  echo "  target-path - file path on the target container"
+  echo
+  echo "NOTE: when no container name given, action"
+  echo "      will be executed on all containers"
+}
+print_symlink_usage() {
+  echo "usage:"
+  echo "  $PROG [action] [arg]..."
+  echo "where:"
+  echo "  action - action that will be taken on the container"
+  echo "  arg... - arguments of chosen action"
+  echo
+  print_available_actions
+}
+
+if [ "$NAME" != "container" ]
+then
+  C="$NAME" # container taken from symlink file name
+else
+  C="$1" # container taken from first argument
+fi
+
+FONT_RESET=`tput sgr0`
+COLOR_RED=`tput setaf 1`
+COLOR_GREEN=`tput setaf 2`
+COLOR_YELLOW=`tput setaf 3`
+FONT_BOLD=`tput bold`
+
+red() {
+  echo "$COLOR_RED$@$FONT_RESET"
+}
+yellow() {
+  echo "$COLOR_YELLOW$@$FONT_RESET"
+}
+green() {
+  echo "$COLOR_GREEN$@$FONT_RESET"
+}
+bold() {
+  echo "$FONT_BOLD$@$FONT_RESET"
+}
+
+die() {
+  echo "`red $@`" >&2
+  exit 1
+}
+warn() {
+  echo "`yellow warning`: $@" >&2
+}
+
+test -f $DEFAULTS_FILE || touch $DEFAULTS_FILE >/dev/null 2>&1
+test -f $DEFAULTS_FILE || die "$DEFAULTS_FILE is not a regular file"
+source $DEFAULTS_FILE
+
+if [ -z "`lxc-ls ^$C\$`" ]
+then
+  # multi-container mode
+
+  CS="$ACTIVE_CONTAINERS" # from defaults file
+
+  if [ -z "$CS" ]
+  then
+    warn "active containers not configured! all containers listed by lxc-ls will be handled; to correct this execute: echo \"ACTIVE_CONTAINERS=\'*\'\" >> $DEFAULTS_FILE"
+    CS=`lxc-ls` 
+  fi
+
+  do_cp() {
+    SS="$1" # source spec
+    TS="$2" # target spec
+    test -n "$SS" || (usage; die "cp: no source spec given")
+    test -n "$TS" || (usage; die "cp: no target spec given")
+  
+    TMP="`mktemp -d`/"
+  
+    if [ -n "`echo $SS | egrep "^.*:.*\$"`" ]
+    then
+      C="${SS%%:*}" # container
+      P="${SS#*:}" # path 
+      scp -r $C@$C:"$P" $TMP || die "could not copy file from source: $SS"
+    else
+      P="${SS}" # path 
+      scp -r "$P" ${TMP} || die "could not copy file from source: $SS"
+    fi
+    
+    if [ -n "`echo $TS | egrep "^.*:.*\$"`" ]
+    then
+      C="${TS%%:*}" # container
+      P="${TS#*:}" # path 
+      test -n "$P" && container $C sh mkdir -p `dirname $P`
+      scp -r ${TMP}* $C@$C:"$P"
+    else 
+      P="${TS}" # path 
+      test -n "$P" && mkdir -p `dirname $P`
+      scp -r ${TMP}* "$P"
+    fi
+    RETVAL=$?
+  
+    rm -rf $TMP
+    test 0 -eq "$RETVAL" || die "could not copy file to the target: $TS"
+  }
+
+  A="$1" # action
+  shift
+
+  case "$A" in
+  help)
+    print_usage
+    ;;
+  cp)
+    do_cp $@
+    ;;
+  *)
+    test -n "$CS" || die "no containers found!\n\n`print_usage`"
+    for C in $CS
+    do
+      echo -n "`bold $C` : "
+      $PROG $C $ARGS
+    done
+    ;;
+  esac
+
+  exit 0 # always in this mode
+fi
+
+# single-container mode
+
+do_start() {
+  if do_status >/dev/null
+  then
+    do_status >&2 # just to print the message
+    return 1
+  fi
+  lxc-fix-user-cgroups $USER $$
+  lxc-start -n $C -d
+  do_status
+}
+do_stop() {
+  if ! do_status >/dev/null
+  then
+    do_status >&2 # just to print the message
+    return 1
+  fi
+  lxc-stop -n $C
+  ! do_status
+}
+do_status() {
+  if [ -n "`lxc-ls --active ^$C\$`" ]
+  then
+    echo "`green RUNNING`"
+    return 0
+  else
+    echo "`yellow STOPPED`"
+    return 1
+  fi
+}
+do_attach() {
+  if [ -n "$DISPLAY" -a -n "$FORCE_TERMINAL" -a "$COLORTERM" != "$FORCE_TERMINAL" ]
+  then
+    # x-server is available but not running in color terminal
+    $FORCE_TERMINAL -e "$PROG $ARGS"
+    exit $?
+  fi
+
+  if ! do_status >/dev/null
+  then
+    do_status >&2 # just to print the message
+    return 1
+  fi
+
+  U=$1
+  shift
+
+  lxc-attach -n $C -- sudo -u $U -g $U -H -i ${@:-/bin/bash}
+}
+do_sh() {
+  do_attach $C $@
+}
+do_sudo() {
+  do_attach root $@
+}
+do_usage() {
+  if [ $NAME = $C ]
+  then
+    print_symlink_usage
+  else
+    print_usage
+  fi 
+}
+
+test $NAME = $C || shift
+A="$1" # action optional
+shift
+
+case "$A" in
+start) do_start ;;
+stop) do_stop ;;
+status) do_status ;;
+sh) do_sh $@ ;;
+sudo) do_sudo $@ ;;
+help|usage) do_usage ;;
+*) do_sh $A $@ ;;
+esac
+
+exit $?
+
