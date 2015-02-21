@@ -1,7 +1,7 @@
 # LXC container manager
 
 Small bash script that manages LXC containers, performs operations on one
-of container all on all configured containers.
+of the containers or all configured containers at once.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ wget https://github.com/muroc/lxc-tricks/raw/master/container \
 chmod +x $BIN_DIR/container
 ```
 
-If BIN_DIR is no on the PATH, modify PATH in rc file of your shell.
+If `BIN_DIR` is no on the `PATH`, modify `PATH` in rc file of your shell.
 
 ```bash
 RC_FILE=~/.bashrc # change if you are not using bash
@@ -66,4 +66,25 @@ container cp browser:Downloads/photo.jpg gamedev:
 
 Transfer is done using scp program, so ssh servers running on the containers
 are needed to perform the transfer.
+
+### Container symlinks
+
+Name of the container can be read from program name (busybox-like behavior).
+Creating symlink for each container shortens each command by 10 characters.
+
+Following script creates symlink for container named *browser*:
+
+```bash
+BIN_DIR=~/bin
+cd $BIN_DIR
+ln -s container browser
+```
+
+Now we can operate on this container through symlink:
+
+```bash
+browser start
+browser firefox https://github.com/muroc/lxc-tricks
+browser stop
+```
 
