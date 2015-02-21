@@ -27,7 +27,7 @@ chmod +x $BIN_DIR/container
 
 If BIN_DIR is no on the PATH, modify PATH in rc file of your shell.
 
-```
+```bash
 RC_FILE=~/.bashrc # change if you are not using bash
 echo "PATH=$BIN_DIR:$PATH" >> $RC_FILE
 . $RC_FILE
