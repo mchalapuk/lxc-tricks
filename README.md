@@ -64,7 +64,7 @@ Following command copies file /home/browser/Downloads/photo.jpg from container
 container cp browser:Downloads/photo.jpg gamedev:
 ```
 
-Transfer is done using scp program, so ssh servers running on the containers
+Transfer is done using `scp` program, so ssh servers running on the containers
 are needed to perform the transfer.
 
 ### Container symlinks
@@ -98,5 +98,7 @@ Push requests are very welcome.
    `~/.c/$CONTAINER_NAME`
  * default *USERNAME* configuration for `sh` command
  * per-container username configuration for `sh` command
+   to remove username prerequisite
  * per-container *FORCE_TERMINAL* configuration
+ * `cp` command based on `lxc-usernsexec` to remove ssh prerequisite
 
