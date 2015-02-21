@@ -88,11 +88,11 @@ browser firefox https://github.com/muroc/lxc-tricks
 browser stop
 ```
 
-# Contribution
+## Contribution
 
 Push requests are very welcome.
 
-## TODO
+### TODO
 
  * container activation based on existance of configuration file
    `~/.c/$CONTAINER_NAME`
