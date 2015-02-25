@@ -35,13 +35,18 @@ echo "PATH=$BIN_DIR:$PATH" >> $RC_FILE
 
 ## Configuration
 
+Each managed container needs configuration file at location
+`~/.c/${CONTAINER_NAME}`. Configuration file may be empty.
+
+Following command creates empty configuration files for all lxc containers.
+
 ```bash
 mkdir -p ~/.c
-cat > ~/.c/defaults << EOF
-ACTIVE_CONTAINERS='browser gamedev' # replace with names of your containers
-FORCE_TERMINAL='mate-terminal' # change to terminal program you are using
-EOF
+for C in `lxc-ls`; do touch ~/.c/$C; done
 ```
+
+If no configuration files are present, the script will print warning
+message and manage all available lxc containers.
 
 ## Usage
 
@@ -95,8 +100,6 @@ Push requests are very welcome.
 
 ### TODO
 
- * container activation based on existance of configuration file
-   `~/.c/$CONTAINER_NAME`
  * default *USERNAME* configuration for `sh` command
  * per-container username configuration for `sh` command
    to remove username prerequisite

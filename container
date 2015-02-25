@@ -10,7 +10,8 @@ PROG="$0"
 ARGS="$@"
 NAME="`basename $0`"
 
-DEFAULTS_FILE=~/.c/defaults
+CONFIG_DIR=~/.c/
+DEFAULTS_FILE=$CONFIG_DIR/defaults
 
 print_available_actions() {
   echo "possible actions:"
@@ -54,13 +55,6 @@ print_symlink_usage() {
   print_available_actions
 }
 
-if [ "$NAME" != "container" ]
-then
-  C="$NAME" # container taken from symlink file name
-else
-  C="$1" # container taken from first argument
-fi
-
 FONT_RESET=`tput sgr0`
 COLOR_RED=`tput setaf 1`
 COLOR_GREEN=`tput setaf 2`
@@ -88,19 +82,27 @@ warn() {
   echo "`yellow warning`: $@" >&2
 }
 
+mkdir -p $CONFIG_DIR || die "could not create directory: $CONFIG_DIR"
 test -f $DEFAULTS_FILE || touch $DEFAULTS_FILE >/dev/null 2>&1
 test -f $DEFAULTS_FILE || die "$DEFAULTS_FILE is not a regular file"
 source $DEFAULTS_FILE
+
+CS=$(ls -1 $CONFIG_DIR | egrep "^`lxc-ls  | sed -e 's/ /\|/g'`\$")
+
+if [ "$NAME" != "container" ]
+then
+  C="$NAME" # container taken from symlink file name
+else
+  C="$1" # container taken from first argument
+fi
 
 if [ -z "`lxc-ls ^$C\$`" ]
 then
   # multi-container mode
 
-  CS="$ACTIVE_CONTAINERS" # from defaults file
-
   if [ -z "$CS" ]
   then
-    warn "active containers not configured! all containers listed by lxc-ls will be handled; to correct this execute: echo \"ACTIVE_CONTAINERS=\'*\'\" >> $DEFAULTS_FILE"
+    warn "active containers not configured! all containers listed by lxc-ls will be handled; to correct this execute: \`\nmkdir -p ~/.c; lxc-ls | while read C; do touch ~/.c/$C; done\n\`"
     CS=`lxc-ls` 
   fi
 
