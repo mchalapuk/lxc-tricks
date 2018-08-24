@@ -1,3 +1,5 @@
+> Before Docker was a thing...
+
 # LXC Tricks
 
 Small bash script that manages LXC containers, performs operations on one
